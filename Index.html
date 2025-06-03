@@ -1,0 +1,215 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photo Locker - Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2b2b2b, #1f1f1f);
+      color: #fff;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: #2a2a2a;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.7);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+    }
+    .upload-box, .login-box {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    input[type="file"], input[type="text"], input[type="password"] {
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      background: #3b3b3b;
+      color: #ccc;
+    }
+    button {
+      background: #00c6ff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #007faa;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .photo {
+      background: #3a3a3a;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .photo img {
+      width: 100%;
+      display: block;
+    }
+    .photo button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 0, 0, 0.8);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      padding: 5px 8px;
+      cursor: pointer;
+    }
+    #app {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fa-solid fa-lock"></i> My Web Locker</h1><div id="login" class="login-box">
+  <input type="text" id="username" placeholder="Username" />
+  <input type="password" id="password" placeholder="Password" />
+  <button onclick="loginUser()"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+</div>
+
+<div id="app">
+  <div class="upload-box">
+    <input type="file" id="photoInput" accept="image/*">
+    <button onclick="uploadPhoto()"><i class="fa-solid fa-upload"></i> Upload</button>
+  </div>
+  <div class="gallery" id="photoGallery"></div>
+</div>
+
+  </div>  <script>
+    const correctUsername = "admin";
+    const correctPassword = "1234";
+
+    function loginUser() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      if (user === correctUsername && pass === correctPassword) {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+      } else {
+        alert("Invalid login credentials!");
+      }
+    }
+
+    let photos = [];
+
+    function uploadPhoto() {
+      const input = document.getElementById('photoInput');
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          photos.push(e.target.result);
+          renderPhotos();
+        }
+        reader.readAsDataURL(input.files[0]);
+        input.value = '';
+      }
+    }
+
+    function renderPhotos() {
+      const gallery = document.getElementById('photoGallery');
+      gallery.innerHTML = '';
+      photos.forEach((src, index) => {
+        const photoDiv = document.createElement('div');
+        photoDiv.classList.add('photo');
+        photoDiv.innerHTML = `
+          <img src="${src}" alt="Photo ${index + 1}">
+          <button onclick="deletePhoto(${index})"><i class='fa-solid fa-trash'></i></button>
+        `;
+        gallery.appendChild(photoDiv);
+      });
+    }
+
+    function deletePhoto(index) {
+      photos.splice(index, 1);
+      renderPhotos();
+    }
+  </script>
+  <script>
+  // 🟢 Simple login with fixed credentials
+  const correctUsername = "admin";
+  const correctPassword = "1234";
+
+  function loginUser() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    if (user === correctUsername && pass === correctPassword) {
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else {
+      alert("Invalid login credentials!");
+    }
+  }
+
+  // 🟢 Cloudinary Upload
+  const cloudName = 'dwvziqwve';
+  const uploadPreset = 'MyPhotos';
+
+  function uploadPhoto() {
+    const fileInput = document.getElementById("photoInput");
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert("Please select a photo.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+      method: "POST",
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      displayPhoto(data.secure_url);
+      fileInput.value = "";
+    })
+    .catch(error => {
+      console.error("Upload failed:", error);
+      alert("Upload failed. Check console for details.");
+    });
+  }
+
+  function displayPhoto(url) {
+    const gallery = document.getElementById("photoGallery");
+    const photoDiv = document.createElement("div");
+    photoDiv.classList.add("photo");
+    photoDiv.innerHTML = `
+      <img src="${url}" alt="Uploaded Photo">
+      <button onclick="this.parentElement.remove()">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    `;
+    gallery.appendChild(photoDiv);
+  }
+</script>
+  </body>
+</html>
